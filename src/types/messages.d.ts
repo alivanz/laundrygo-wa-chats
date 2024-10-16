@@ -3,7 +3,7 @@ type ChatMessage = {
 	created_at: Date;
 	status: string;
 	content: ChatMessageContent;
-	error?: any;
+	// error?: any;
 };
 
 type ChatMessageContent =
@@ -31,16 +31,12 @@ type ChatMessageContentText = {
 
 type ChatMessageContentImage = {
 	type: "image";
-	image: {
-		id: string;
-		sha256: string;
-		mime_type: string;
-	};
+	image: ChatMessageMedia;
 };
 
 type ChatMessageContentSticker = {
 	type: "sticker";
-	sticker: {};
+	sticker: ChatMessageMedia;
 };
 
 type ChatMessageContentButton = {
@@ -51,4 +47,10 @@ type ChatMessageContentButton = {
 	context: {
 		id: string;
 	};
+};
+
+type ChatMessageMedia = {
+	id: string;
+	sha256: string;
+	mime_type: string;
 };

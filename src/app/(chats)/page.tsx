@@ -11,7 +11,7 @@ import {
 	Image,
 	Paperclip,
 	Plus,
-	File,
+	// File,
 	Phone,
 	Video,
 } from "lucide-react";
@@ -40,8 +40,8 @@ async function getConversations({
 	}
 	return fetch("/conversations?" + params)
 		.then((resp) => resp.json())
-		.then((objs) =>
-			objs.map((obj: any) => ({
+		.then((objs: Conversation[]) =>
+			objs.map((obj) => ({
 				...obj,
 				last_chat_at: new Date(obj.last_chat_at),
 			}))
@@ -107,7 +107,7 @@ export default function ChatView() {
 				<ScrollArea
 					ref={ref}
 					className="h-[calc(100vh-5rem)]"
-					onScrollCapture={(event) => {
+					onScrollCapture={() => {
 						if (!ref.current) return;
 
 						const scrollElement = ref.current.querySelector(
@@ -366,8 +366,9 @@ function WaText({ text }: { text: string }) {
 
 	return (
 		<Markdown
-			children={formattedText}
 			remarkPlugins={[remarkGfm]} // Enable GitHub-flavored markdown features
-		/>
+		>
+			{formattedText}
+		</Markdown>
 	);
 }
