@@ -21,18 +21,61 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm"; // For strikethrough and other GitHub-flavored markdown
+
+async function getConversations({
+	after_at,
+	before_at,
+}: {
+	after_at?: Date;
+	before_at?: Date;
+} = {}): Promise<Conversation[]> {
+	const params = new URLSearchParams();
+	if (after_at) {
+		params.append("after_at", after_at.toISOString());
+	}
+	if (before_at) {
+		params.append("before_at", before_at.toISOString());
+	}
+	return fetch("/conversations?" + params)
+		.then((resp) => resp.json())
+		.then((objs) =>
+			objs.map((obj: any) => ({
+				...obj,
+				last_chat_at: new Date(obj.last_chat_at),
+			}))
+		);
+}
 
 export default function ChatView() {
-	const [conversations, setConversations] = useState<Conversation[]>();
+	const ref = useRef<HTMLDivElement>(null);
+	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [selectedChat, setSelectedChat] = useState<Conversation>();
 	const [isMobileMessageView, setIsMobileMessageView] = useState(false);
 
 	useEffect(() => {
-		fetch("/conversations").then(async (resp) => {
-			const rows = await resp.json();
-			setConversations(rows);
-		});
+		getConversations().then(setConversations);
 	}, []);
+	useEffect(() => {
+		const id = setInterval(async () => {
+			const result =
+				conversations && conversations?.length > 0
+					? getConversations({
+							after_at: conversations[0].last_chat_at,
+					  })
+					: getConversations();
+			result.then((result) => {
+				const ids = new Set(result.map((r) => r.id));
+				setConversations((conversations) =>
+					result.concat(conversations.filter((c) => !ids.has(c.id)))
+				);
+			});
+		}, 3000);
+		return () => {
+			clearInterval(id);
+		};
+	}, [conversations]);
 
 	const handleChatSelect = (chat: Conversation) => {
 		setSelectedChat(chat);
@@ -61,7 +104,32 @@ export default function ChatView() {
 						/>
 					</div>
 				</div>
-				<ScrollArea className="h-[calc(100vh-5rem)]">
+				<ScrollArea
+					ref={ref}
+					className="h-[calc(100vh-5rem)]"
+					onScrollCapture={(event) => {
+						if (!ref.current) return;
+
+						const scrollElement = ref.current.querySelector(
+							"[data-radix-scroll-area-viewport]"
+						);
+						if (!scrollElement) return;
+						const { scrollTop, scrollHeight, clientHeight } =
+							scrollElement;
+						if (scrollHeight - scrollTop === clientHeight) {
+							console.log("!!!");
+							getConversations({
+								before_at:
+									conversations[conversations.length - 1]
+										.last_chat_at,
+							}).then((result) => {
+								setConversations((conversations) =>
+									conversations.concat(result)
+								);
+							});
+						}
+					}}
+				>
 					{conversations?.map((chat) => (
 						<div
 							key={chat.id}
@@ -206,9 +274,9 @@ function ChatMessages({
 							) : message.content.type === "button" ? (
 								message.content.button.text
 							) : message.content.type === "unsupported" ? (
-								message.content.title
+								"unsupported message"
 							) : message.content.type === "text" ? (
-								message.content.text.body
+								<WaText text={message.content.text.body} />
 							) : message.content.type === "image" ? (
 								<WaImage
 									phoneId={conv.phone_number_id}
@@ -287,6 +355,20 @@ function WaImage({ phoneId, mediaId }: { phoneId: string; mediaId: string }) {
 			src={`/phones/${phoneId}/medias/${mediaId}`}
 			alt="Shared image"
 			className="max-w-xs rounded"
+		/>
+	);
+}
+
+function WaText({ text }: { text: string }) {
+	// Convert WhatsApp-style formatting to markdown
+	const formattedText = text
+		.replace(/\*(.*?)\*/g, "**$1**") // Bold
+		.replace(/_(.*?)_/g, "*$1*"); // Italics
+
+	return (
+		<Markdown
+			children={formattedText}
+			remarkPlugins={[remarkGfm]} // Enable GitHub-flavored markdown features
 		/>
 	);
 }
