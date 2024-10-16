@@ -6,4 +6,45 @@ type ChatMessage = {
 	error?: any;
 };
 
-type ChatMessageContent = {};
+type ChatMessageContent =
+	| ChatMessageContentTemplate
+	| ChatMessageContentButton
+	| ChatMessageContentUnsupported
+	| ChatMessageContentText
+	| ChatMessageContentImage
+	| ChatMessageContentSticker;
+
+type ChatMessageContentTemplate = {
+	type: "template";
+	template: { name: string };
+};
+
+type ChatMessageContentUnsupported = {
+	type: "unsupported";
+	title: string;
+};
+
+type ChatMessageContentText = {
+	type: "text";
+	text: { body: string };
+};
+
+type ChatMessageContentImage = {
+	type: "image";
+	image: {};
+};
+
+type ChatMessageContentSticker = {
+	type: "sticker";
+	sticker: {};
+};
+
+type ChatMessageContentButton = {
+	type: "button";
+	button: {
+		text: string;
+	};
+	context: {
+		id: string;
+	};
+};

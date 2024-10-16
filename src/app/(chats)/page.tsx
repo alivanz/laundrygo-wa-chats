@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -127,13 +127,19 @@ function ChatMessages({
 	onBack(): void;
 	conv: Conversation;
 }) {
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const [messages, setMessages] = useState<ChatMessage[]>();
 	useEffect(() => {
 		fetch(`/conversations/${conv.id}/messages`).then(async (resp) => {
-			const rows = await resp.json();
-			setMessages(rows);
+			const rows: ChatMessage[] = await resp.json();
+			setMessages(rows.reverse());
 		});
 	}, [conv.id]);
+	useEffect(() => {
+		if (messagesEndRef.current) {
+			messagesEndRef.current.scrollIntoView({ behavior: "instant" });
+		}
+	}, [messages]);
 	return (
 		<>
 			<div className="p-4 border-b bg-white flex items-center justify-between">
@@ -176,41 +182,54 @@ function ChatMessages({
 					</Button>
 				</div>
 			</div>
-			<ScrollArea className="flex-1 p-4 bg-gray-50">
+			<ScrollArea className="flex-1 p-4 bg-gray-50 flex flex-col-reverse">
 				{messages?.map((message) => (
 					<div
 						key={message.id}
 						className={`mb-4 ${
-							message.status === "" ? "text-right" : "text-left"
+							message.status === "" ? "text-left" : "text-right"
 						}`}
 					>
 						<div
 							className={`inline-block p-3 rounded-lg ${
-								message.status !== ""
+								message.status == "failed"
+									? "bg-red-500 text-white"
+									: message.status == "read"
+									? "bg-green-500 text-white"
+									: message.status !== ""
 									? "bg-blue-500 text-white"
 									: "bg-white text-gray-800"
 							} shadow`}
 						>
-							{/* {message.type === "image" ? (
-								<img
-									src={message.content}
-									alt="Shared image"
-									className="max-w-xs rounded"
-								/>
-							) : message.type === "file" ? (
-								<div className="flex items-center">
-									<File className="w-4 h-4 mr-2" />
-									<span>{message.content}</span>
-								</div>
-							) : (
-								message.content
-							)} */}
+							{message.content.type === "template"
+								? message.content.template.name
+								: message.content.type === "button"
+								? message.content.button.text
+								: message.content.type === "unsupported"
+								? message.content.title
+								: message.content.type === "text"
+								? message.content.text.body
+								: message.content.type === "image"
+								? // <img
+								  // 	src={message.content}
+								  // 	alt="Shared image"
+								  // 	className="max-w-xs rounded"
+								  // />
+								  "message.content.image"
+								: // ) : message.content.type === "file" ? (
+								  // 	<div className="flex items-center">
+								  // 		<File className="w-4 h-4 mr-2" />
+								  // 		<span>{message.content}</span>
+								  // 	</div>
+								  JSON.stringify(message.content)}
 						</div>
 						<div className="text-xs text-gray-500 mt-1">
-							{message.created_at.toLocaleString()}
+							{message.created_at.toLocaleString()} {" / "}
+							{message.status}
 						</div>
 					</div>
 				))}
+				<div ref={messagesEndRef} />
 			</ScrollArea>
 			<div className="p-4 border-t bg-white">
 				<form className="flex items-center">
