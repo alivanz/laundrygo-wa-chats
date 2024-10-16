@@ -201,27 +201,27 @@ function ChatMessages({
 									: "bg-white text-gray-800"
 							} shadow`}
 						>
-							{message.content.type === "template"
-								? message.content.template.name
-								: message.content.type === "button"
-								? message.content.button.text
-								: message.content.type === "unsupported"
-								? message.content.title
-								: message.content.type === "text"
-								? message.content.text.body
-								: message.content.type === "image"
-								? // <img
-								  // 	src={message.content}
-								  // 	alt="Shared image"
-								  // 	className="max-w-xs rounded"
-								  // />
-								  "message.content.image"
-								: // ) : message.content.type === "file" ? (
-								  // 	<div className="flex items-center">
-								  // 		<File className="w-4 h-4 mr-2" />
-								  // 		<span>{message.content}</span>
-								  // 	</div>
-								  JSON.stringify(message.content)}
+							{message.content.type === "template" ? (
+								message.content.template.name
+							) : message.content.type === "button" ? (
+								message.content.button.text
+							) : message.content.type === "unsupported" ? (
+								message.content.title
+							) : message.content.type === "text" ? (
+								message.content.text.body
+							) : message.content.type === "image" ? (
+								<WaImage
+									phoneId={conv.phone_number_id}
+									mediaId={message.content.image.id}
+								/>
+							) : (
+								// ) : message.content.type === "file" ? (
+								// 	<div className="flex items-center">
+								// 		<File className="w-4 h-4 mr-2" />
+								// 		<span>{message.content}</span>
+								// 	</div>
+								JSON.stringify(message.content)
+							)}
 						</div>
 						<div className="text-xs text-gray-500 mt-1">
 							{message.created_at.toLocaleString()} {" / "}
@@ -278,5 +278,15 @@ function ChatMessages({
 				</form>
 			</div>
 		</>
+	);
+}
+
+function WaImage({ phoneId, mediaId }: { phoneId: string; mediaId: string }) {
+	return (
+		<img
+			src={`/phones/${phoneId}/medias/${mediaId}`}
+			alt="Shared image"
+			className="max-w-xs rounded"
+		/>
 	);
 }

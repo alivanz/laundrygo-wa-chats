@@ -31,7 +31,11 @@ type ChatMessageContentText = {
 
 type ChatMessageContentImage = {
 	type: "image";
-	image: {};
+	image: {
+		id: string;
+		sha256: string;
+		mime_type: string;
+	};
 };
 
 type ChatMessageContentSticker = {

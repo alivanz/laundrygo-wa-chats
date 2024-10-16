@@ -18,6 +18,7 @@ export async function GET(req: Request) {
 	const { rows } = await db.query(
 		`SELECT
 			wa_conversations.id,
+			wa_conversations.phone_number_id,
 			wa_conversations.target as phone,
 			wa_conversations.last_chat_at,
 			COALESCE(wa_contacts.name, wa_contacts.push_name) as name
