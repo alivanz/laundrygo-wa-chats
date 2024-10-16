@@ -20,9 +20,6 @@ export async function GET(req: Request) {
 		},
 	});
 	const media = (await resp.json()) as Media;
-	console.log(
-		`curl -v ${media.url} -H "Authorization: Bearer ${token}" -H "sec-fetch-mode: cors"`
-	);
 	const respImg = await fetch(media.url, {
 		headers: {
 			Authorization: `Bearer ${token}`,

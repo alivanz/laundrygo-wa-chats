@@ -117,7 +117,6 @@ export default function ChatView() {
 						const { scrollTop, scrollHeight, clientHeight } =
 							scrollElement;
 						if (scrollHeight - scrollTop === clientHeight) {
-							console.log("!!!");
 							getConversations({
 								before_at:
 									conversations[conversations.length - 1]

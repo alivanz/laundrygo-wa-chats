@@ -29,6 +29,5 @@ export async function GET(req: Request) {
         LIMIT 20`,
 		values
 	);
-	console.log(values);
 	return NextResponse.json(rows);
 }
