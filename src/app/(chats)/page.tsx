@@ -187,6 +187,18 @@ export default function ChatView() {
 	);
 }
 
+function fetchMessages(
+	convId: string,
+	q: {
+		before_id?: string;
+		after_id?: string;
+	} = {}
+): Promise<ChatMessage[]> {
+	return fetch(
+		`/conversations/${convId}/messages?` + new URLSearchParams(q)
+	).then((resp) => resp.json());
+}
+
 function ChatMessages({
 	onBack,
 	conv,
@@ -195,18 +207,33 @@ function ChatMessages({
 	conv: Conversation;
 }) {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const [messages, setMessages] = useState<ChatMessage[]>();
+	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	useEffect(() => {
-		fetch(`/conversations/${conv.id}/messages`).then(async (resp) => {
-			const rows: ChatMessage[] = await resp.json();
-			setMessages(rows.reverse());
+		fetchMessages(conv.id).then((messages) => {
+			setMessages(messages.reverse());
 		});
 	}, [conv.id]);
 	useEffect(() => {
+		const id = setInterval(() => {
+			const result =
+				messages.length > 0
+					? fetchMessages(conv.id, {
+							after_id: messages[messages.length - 1].id,
+					  })
+					: fetchMessages(conv.id);
+			result.then((msgs) =>
+				setMessages((messages) => messages.concat(msgs.reverse()))
+			);
+		}, 3000);
+		return () => {
+			clearInterval(id);
+		};
+	}, [conv.id, messages]);
+	useEffect(() => {
 		if (messagesEndRef.current) {
-			messagesEndRef.current.scrollIntoView({ behavior: "instant" });
+			messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
 		}
-	}, [messages]);
+	}, [messages.length > 0 ? messages[messages.length - 1].id : ""]);
 	return (
 		<>
 			<div className="p-4 border-b bg-white flex items-center justify-between">
@@ -250,7 +277,7 @@ function ChatMessages({
 				</div>
 			</div>
 			<ScrollArea className="flex-1 p-4 bg-gray-50 flex flex-col-reverse">
-				{messages?.map((message) => (
+				{messages.map((message) => (
 					<div
 						key={message.id}
 						className={`mb-4 ${
