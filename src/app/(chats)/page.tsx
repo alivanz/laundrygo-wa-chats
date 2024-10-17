@@ -199,6 +199,13 @@ function fetchMessages(
 	).then((resp) => resp.json());
 }
 
+function sendMessage(convId: string, msg: string): Promise<ChatMessage> {
+	return fetch(`/conversations/${convId}/messages`, {
+		method: "POST",
+		body: JSON.stringify(msg),
+	}).then((resp) => resp.json());
+}
+
 function ChatMessages({
 	onBack,
 	conv,
@@ -208,6 +215,8 @@ function ChatMessages({
 }) {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [text, setText] = useState("");
+	const [loading, setLoading] = useState(false);
 	useEffect(() => {
 		fetchMessages(conv.id).then((messages) => {
 			setMessages(messages.reverse());
@@ -361,11 +370,24 @@ function ChatMessages({
 						type="text"
 						placeholder="Type a message..."
 						className="flex-1 mr-2 rounded-full border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+						value={text}
+						onChange={(event) => setText(event.target.value)}
+						disabled={loading}
 					/>
 					<Button
 						type="submit"
 						size="icon"
 						className="rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+						disabled={loading}
+						onClick={async () => {
+							try {
+								setLoading(true);
+								await sendMessage(conv.id, text);
+								setText("");
+							} finally {
+								setLoading(false);
+							}
+						}}
 					>
 						<Send className="h-4 w-4" />
 					</Button>
