@@ -12,6 +12,7 @@ type ChatMessageContent =
 	| ChatMessageContentUnsupported
 	| ChatMessageContentText
 	| ChatMessageContentImage
+	| ChatMessageContentVideo
 	| ChatMessageContentSticker;
 
 type ChatMessageContentTemplate = {
@@ -32,6 +33,11 @@ type ChatMessageContentText = {
 type ChatMessageContentImage = {
 	type: "image";
 	image: ChatMessageMedia;
+};
+
+type ChatMessageContentVideo = {
+	type: "video";
+	video: ChatMessageMedia;
 };
 
 type ChatMessageContentSticker = {

@@ -14,6 +14,7 @@ import {
 	// File,
 	Phone,
 	Video,
+	Play,
 } from "lucide-react";
 import {
 	Popover,
@@ -317,6 +318,29 @@ function ChatMessages({
 									phoneId={conv.phone_number_id}
 									mediaId={message.content.image.id}
 								/>
+							) : message.content.type === "video" ? (
+								<div className="relative">
+									<video
+										className="max-w-xs rounded"
+										controls
+									>
+										<source
+											src={`/phones/${conv.phone_number_id}/medias/${message.content.video.id}`}
+											type="video/mp4"
+										/>
+										Your browser does not support the video
+										tag.
+									</video>
+									{/* <div className="absolute inset-0 flex items-center justify-center">
+										<Button
+											variant="ghost"
+											size="icon"
+											className="bg-black bg-opacity-50 text-white rounded-full"
+										>
+											<Play className="h-8 w-8" />
+										</Button>
+									</div> */}
+								</div>
 							) : (
 								// ) : message.content.type === "file" ? (
 								// 	<div className="flex items-center">
